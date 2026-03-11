@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Copy of PakSkill - Labor Marketplace",
+  "description": "A verified skills marketplace for Pakistan connecting skilled workers like electricians, drivers, and carpenters with customers. Features CNIC verification and secure booking.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

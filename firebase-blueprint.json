@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Base user profile for all users",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "worker", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "WorkerProfile": {
+      "title": "Worker Profile",
+      "description": "Detailed profile for workers including skills and verification status",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "city": { "type": "string" },
+        "cnicUrl": { "type": "string", "description": "URL to the uploaded CNIC image" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "hourlyRate": { "type": "number" },
+        "bio": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" }
+      },
+      "required": ["uid", "skills", "city", "cnicUrl", "status"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Record of a service booking",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "workerId": { "type": "string" },
+        "service": { "type": "string" },
+        "amount": { "type": "number" },
+        "commission": { "type": "number" },
+        "status": { "type": "string", "enum": ["requested", "accepted", "completed", "cancelled"] },
+        "date": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerId", "workerId", "service", "amount", "commission", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/workerProfiles/{workerId}": {
+      "schema": "WorkerProfile",
+      "description": "Worker details and verification status"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Booking records"
+    }
+  }
+}

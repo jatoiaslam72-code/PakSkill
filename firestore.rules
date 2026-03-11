@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Fields: uid, email, displayName, role, createdAt
+    //
+    // Collection: workerProfiles
+    // Fields: uid, fullName, skills, city, cnicNumber, cnicUrl, status, verified, hourlyRate, bio, rating, reviewCount
+    //
+    // Collection: bookings
+    // Fields: customerId, workerId, service, amount, commission, status, date, createdAt
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "jatoiaslam72@gmail.com" ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId && 
+        (request.resource.data.role != 'admin' || request.auth.token.email == "jatoiaslam72@gmail.com");
+      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
+    }
+
+    // Worker Profile Rules
+    match /workerProfiles/{workerId} {
+      // Allow anyone to read verified profiles. Owners and admins can read any status.
+      allow read: if (resource.data.verified == true) || (isAuthenticated() && (isOwner(workerId) || isAdmin()));
+      allow create: if isOwner(workerId) && request.resource.data.status == 'pending' && request.resource.data.verified == false;
+      allow update: if isAdmin() || (isOwner(workerId) && request.resource.data.status == resource.data.status && request.resource.data.verified == resource.data.verified);
+    }
+
+    // Booking Rules
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.customerId || request.auth.uid == resource.data.workerId || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.customerId == request.auth.uid;
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.customerId || request.auth.uid == resource.data.workerId || isAdmin());
+    }
+  }
+}
